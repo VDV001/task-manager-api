@@ -9,7 +9,7 @@ import (
 	"github.com/daniilgit/task-manager-api/internal/domain"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
-	"github.com/lib/pq"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 var _ domain.UserRepository = (*UserRepo)(nil)
@@ -28,8 +28,8 @@ func (r *UserRepo) Create(ctx context.Context, user *domain.User) error {
 		VALUES (:id, :name, :email, :password_hash, :created_at)`
 
 	if _, err := r.db.NamedExecContext(ctx, q, user); err != nil {
-		var pqErr *pq.Error
-		if errors.As(err, &pqErr) && pqErr.Code == "23505" {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 			return domain.ErrAlreadyExists
 		}
 		return fmt.Errorf("insert user: %w", err)

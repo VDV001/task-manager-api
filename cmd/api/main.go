@@ -26,7 +26,7 @@ import (
 	"github.com/daniilgit/task-manager-api/pkg/hash"
 	"github.com/daniilgit/task-manager-api/pkg/jwt"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 func main() {
@@ -59,7 +59,7 @@ func run() error {
 	slog.SetDefault(log)
 
 	// Database.
-	db, err := sqlx.Connect("postgres", cfg.DB.DSN())
+	db, err := sqlx.Connect("pgx", cfg.DB.DSN())
 	if err != nil {
 		return fmt.Errorf("connect to database: %w", err)
 	}

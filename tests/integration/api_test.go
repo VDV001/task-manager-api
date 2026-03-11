@@ -19,7 +19,7 @@ import (
 	"github.com/daniilgit/task-manager-api/pkg/hash"
 	"github.com/daniilgit/task-manager-api/pkg/jwt"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -50,7 +50,7 @@ func setupTestApp(t *testing.T) *testApp {
 	connStr, err := pgContainer.ConnectionString(ctx, "sslmode=disable")
 	require.NoError(t, err)
 
-	db, err := sqlx.Connect("postgres", connStr)
+	db, err := sqlx.Connect("pgx", connStr)
 	require.NoError(t, err)
 	t.Cleanup(func() { db.Close() })
 
