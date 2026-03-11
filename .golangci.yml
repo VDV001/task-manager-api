@@ -1,0 +1,53 @@
+run:
+  timeout: 3m
+  go: "1.25"
+
+linters:
+  enable:
+    - errcheck
+    - govet
+    - staticcheck
+    - unused
+    - gosimple
+    - ineffassign
+    - typecheck
+    - bodyclose
+    - noctx
+    - gosec
+    - errname
+    - errorlint
+    - exhaustive
+    - gocritic
+    - gofmt
+    - goimports
+    - misspell
+    - prealloc
+    - revive
+    - unconvert
+    - unparam
+    - whitespace
+
+linters-settings:
+  govet:
+    shadow: true
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - style
+      - performance
+  revive:
+    rules:
+      - name: unexported-return
+        disabled: true
+  exhaustive:
+    default-signifies-exhaustive: true
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - gosec
+        - errcheck
+    - path: mock_test\.go
+      linters:
+        - unparam
