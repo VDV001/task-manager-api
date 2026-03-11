@@ -11,9 +11,9 @@ defineProps<{
   <div
     :class="
       cn(
-        'rounded-2xl border border-border bg-bg-card/60 backdrop-blur-sm p-5 transition-all duration-300',
+        'rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5 transition-all duration-300',
         hoverable &&
-          'hover:border-border-hover hover:bg-bg-card-hover hover:-translate-y-0.5 cursor-pointer',
+          'hover:border-white/[0.15] hover:bg-white/[0.05] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 cursor-pointer',
         $props.class,
       )
     "

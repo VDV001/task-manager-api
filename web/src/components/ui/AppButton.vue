@@ -20,7 +20,7 @@ const classes = computed(() =>
   cn(
     'inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent/50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer',
     {
-      'bg-accent hover:bg-accent-hover text-white shadow-lg shadow-accent-glow':
+      'bg-accent hover:bg-accent-hover text-white shadow-lg shadow-accent-glow hover:shadow-xl hover:shadow-accent/20':
         props.variant === 'primary',
       'bg-white/5 hover:bg-white/10 text-text-primary border border-border':
         props.variant === 'secondary',

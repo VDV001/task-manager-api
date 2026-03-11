@@ -4,9 +4,9 @@ import AppSidebar from '@/components/layout/AppSidebar.vue'
 </script>
 
 <template>
-  <div class="flex h-screen bg-bg-primary text-text-primary">
+  <div class="min-h-screen bg-bg-primary text-text-primary">
     <AppSidebar />
-    <main class="flex-1 overflow-y-auto p-8">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <RouterView />
     </main>
     <Toaster
