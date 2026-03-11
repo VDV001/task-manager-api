@@ -39,3 +39,9 @@ docs/plans/
 # Frontend
 web/node_modules/
 web/dist/
+
+# Playwright MCP
+.playwright-mcp/
+
+# Design files
+web/design/
