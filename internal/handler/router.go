@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-playground/validator/v10"
 	"github.com/rs/cors"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 func NewRouter(
@@ -68,6 +69,11 @@ func NewRouter(
 			})
 		})
 	})
+
+	// Swagger UI.
+	r.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("/swagger/doc.json"),
+	))
 
 	// Liveness — always OK if process is running.
 	r.Get("/healthz", func(w http.ResponseWriter, _ *http.Request) {

@@ -19,6 +19,7 @@ import (
 	"syscall"
 	"time"
 
+	_ "github.com/daniilgit/task-manager-api/docs"
 	"github.com/daniilgit/task-manager-api/internal/config"
 	"github.com/daniilgit/task-manager-api/internal/handler"
 	"github.com/daniilgit/task-manager-api/internal/repo/postgres"

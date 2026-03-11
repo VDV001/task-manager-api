@@ -1,0 +1,478 @@
+basePath: /api/v1
+definitions:
+  github_com_daniilgit_task-manager-api_internal_domain.TaskStatus:
+    enum:
+    - new
+    - in_progress
+    - done
+    type: string
+    x-enum-varnames:
+    - TaskStatusNew
+    - TaskStatusInProgress
+    - TaskStatusDone
+  github_com_daniilgit_task-manager-api_pkg_httputil.ErrorBody:
+    properties:
+      code:
+        type: string
+      details:
+        items:
+          $ref: '#/definitions/github_com_daniilgit_task-manager-api_pkg_httputil.FieldError'
+        type: array
+      message:
+        type: string
+    type: object
+  github_com_daniilgit_task-manager-api_pkg_httputil.ErrorResponse:
+    properties:
+      error:
+        $ref: '#/definitions/github_com_daniilgit_task-manager-api_pkg_httputil.ErrorBody'
+    type: object
+  github_com_daniilgit_task-manager-api_pkg_httputil.FieldError:
+    properties:
+      field:
+        type: string
+      message:
+        type: string
+    type: object
+  github_com_daniilgit_task-manager-api_pkg_httputil.PaginationMeta:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+    type: object
+  github_com_daniilgit_task-manager-api_pkg_httputil.Response:
+    properties:
+      data: {}
+      meta: {}
+    type: object
+  internal_handler.CreateTaskRequest:
+    properties:
+      deadline:
+        type: string
+      description:
+        maxLength: 10000
+        type: string
+      title:
+        maxLength: 255
+        minLength: 1
+        type: string
+    required:
+    - title
+    type: object
+  internal_handler.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  internal_handler.RefreshRequest:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  internal_handler.RegisterRequest:
+    properties:
+      email:
+        maxLength: 255
+        type: string
+      name:
+        maxLength: 255
+        minLength: 1
+        type: string
+      password:
+        maxLength: 72
+        minLength: 6
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  internal_handler.StatsResponse:
+    properties:
+      by_status:
+        additionalProperties:
+          type: integer
+        type: object
+      overdue:
+        type: integer
+      total:
+        type: integer
+    type: object
+  internal_handler.TaskResponse:
+    properties:
+      author_id:
+        type: string
+      created_at:
+        type: string
+      deadline:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      status:
+        $ref: '#/definitions/github_com_daniilgit_task-manager-api_internal_domain.TaskStatus'
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  internal_handler.TokenResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  internal_handler.UpdateTaskRequest:
+    properties:
+      deadline:
+        type: string
+      description:
+        maxLength: 10000
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/github_com_daniilgit_task-manager-api_internal_domain.TaskStatus'
+        enum:
+        - new
+        - in_progress
+        - done
+      title:
+        maxLength: 255
+        minLength: 1
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: REST API для менеджера задач с аутентификацией и управлением задачами.
+  title: Task Manager API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Данные входа
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handler.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_daniilgit_task-manager-api_pkg_httputil.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_handler.TokenResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_daniilgit_task-manager-api_pkg_httputil.ErrorResponse'
+      summary: Вход в систему
+      tags:
+      - auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Refresh token
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handler.RefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_daniilgit_task-manager-api_pkg_httputil.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_handler.TokenResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_daniilgit_task-manager-api_pkg_httputil.ErrorResponse'
+      summary: Обновление токенов
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Данные регистрации
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handler.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_daniilgit_task-manager-api_pkg_httputil.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_handler.TokenResponse'
+              type: object
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_daniilgit_task-manager-api_pkg_httputil.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/github_com_daniilgit_task-manager-api_pkg_httputil.ErrorResponse'
+      summary: Регистрация пользователя
+      tags:
+      - auth
+  /tasks:
+    get:
+      parameters:
+      - description: Фильтр по статусу
+        enum:
+        - new
+        - in_progress
+        - done
+        in: query
+        name: status
+        type: string
+      - description: Поиск по заголовку
+        in: query
+        name: search
+        type: string
+      - description: Только просроченные
+        in: query
+        name: overdue
+        type: boolean
+      - description: Дедлайн до (YYYY-MM-DD)
+        in: query
+        name: deadline_before
+        type: string
+      - description: Дедлайн после (YYYY-MM-DD)
+        in: query
+        name: deadline_after
+        type: string
+      - description: Создано после (YYYY-MM-DD)
+        in: query
+        name: created_after
+        type: string
+      - description: Создано до (YYYY-MM-DD)
+        in: query
+        name: created_before
+        type: string
+      - description: Поле сортировки
+        enum:
+        - created_at
+        - deadline
+        - status
+        - title
+        in: query
+        name: sort_by
+        type: string
+      - description: Направление
+        enum:
+        - asc
+        - desc
+        in: query
+        name: order
+        type: string
+      - default: 1
+        description: Страница
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Лимит
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_daniilgit_task-manager-api_pkg_httputil.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/internal_handler.TaskResponse'
+                  type: array
+                meta:
+                  $ref: '#/definitions/github_com_daniilgit_task-manager-api_pkg_httputil.PaginationMeta'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Список задач с фильтрацией и пагинацией
+      tags:
+      - tasks
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Данные задачи
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handler.CreateTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_daniilgit_task-manager-api_pkg_httputil.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_handler.TaskResponse'
+              type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/github_com_daniilgit_task-manager-api_pkg_httputil.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Создать задачу
+      tags:
+      - tasks
+  /tasks/{id}:
+    delete:
+      parameters:
+      - description: Task ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_daniilgit_task-manager-api_pkg_httputil.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Удалить задачу (soft delete)
+      tags:
+      - tasks
+    get:
+      parameters:
+      - description: Task ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_daniilgit_task-manager-api_pkg_httputil.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_handler.TaskResponse'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_daniilgit_task-manager-api_pkg_httputil.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получить задачу по ID
+      tags:
+      - tasks
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Task ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Поля для обновления
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handler.UpdateTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_daniilgit_task-manager-api_pkg_httputil.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_handler.TaskResponse'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_daniilgit_task-manager-api_pkg_httputil.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Обновить задачу
+      tags:
+      - tasks
+  /tasks/stats:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_daniilgit_task-manager-api_pkg_httputil.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_handler.StatsResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Статистика по задачам
+      tags:
+      - tasks
+securityDefinitions:
+  BearerAuth:
+    description: Введите "Bearer {token}"
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
