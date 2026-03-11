@@ -35,3 +35,7 @@ coverage.html
 
 # Plans (internal development docs)
 docs/plans/
+
+# Frontend
+web/node_modules/
+web/dist/
