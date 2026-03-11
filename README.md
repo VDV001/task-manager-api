@@ -23,7 +23,7 @@ tests/integration/    → Интеграционные тесты (testcontainer
 ```
 
 **Зависимости направлены внутрь:** handler → usecase → domain ← repo/postgres.
-Доменный слой не зависит ни от чего внешнего.
+Доменный слой не зависит ни от чего внешнего. Все внешние зависимости инвертированы через интерфейсы.
 
 ## Стек технологий
 
@@ -31,14 +31,14 @@ tests/integration/    → Интеграционные тесты (testcontainer
 |-----------------|--------------------------------|
 | Язык            | Go 1.25                        |
 | HTTP Router     | go-chi/chi v5                  |
-| База данных     | PostgreSQL 16                  |
+| База данных     | PostgreSQL 17                  |
 | SQL             | jmoiron/sqlx (raw SQL)         |
 | Миграции        | pressly/goose v3               |
 | Аутентификация  | golang-jwt/jwt v5 (access + refresh) |
 | Хэширование     | golang.org/x/crypto/bcrypt     |
 | Валидация       | go-playground/validator v10    |
 | Конфигурация    | caarlos0/env v11               |
-| Логирование     | log/slog (stdlib)              |
+| Логирование     | log/slog (stdlib, JSON)        |
 | Swagger         | swaggo/swag                    |
 | Тесты           | testify + testcontainers-go    |
 | Контейнеризация | Docker + docker-compose        |
@@ -61,13 +61,15 @@ tests/integration/    → Интеграционные тесты (testcontainer
 |-----------------|--------------|---------------------------|
 | id              | UUID         | Уникальный идентификатор  |
 | title           | string       | Заголовок (1-255 символов)|
-| description     | string       | Описание (опционально)    |
+| description     | string       | Описание (до 10000 символов) |
 | status          | enum         | new / in_progress / done  |
 | deadline        | timestamp    | Срок выполнения (опц.)    |
 | created_at      | timestamp    | Дата создания             |
 | updated_at      | timestamp    | Дата обновления           |
 | deleted_at      | timestamp    | Soft delete (NULL = active)|
 | author_id       | UUID (FK)    | ID автора (создателя)     |
+
+Для soft-deleted записей используются partial indexes в PostgreSQL — индексы строятся только по `deleted_at IS NULL`, что исключает удалённые записи из поисковых операций и экономит место.
 
 ## API Endpoints
 
@@ -86,9 +88,15 @@ tests/integration/    → Интеграционные тесты (testcontainer
 | POST   | /api/v1/tasks           | Создать задачу              | Bearer  |
 | GET    | /api/v1/tasks           | Список задач (с фильтрами) | Bearer  |
 | GET    | /api/v1/tasks/:id       | Получить задачу по ID       | Bearer  |
-| PUT    | /api/v1/tasks/:id       | Обновить задачу             | Bearer  |
+| PATCH  | /api/v1/tasks/:id       | Обновить задачу (частично)  | Bearer  |
 | DELETE | /api/v1/tasks/:id       | Удалить задачу (soft)       | Bearer  |
 | GET    | /api/v1/tasks/stats     | Статистика по задачам       | Bearer  |
+
+### Служебные
+
+| Метод  | Путь     | Описание              | Auth |
+|--------|----------|-----------------------|------|
+| GET    | /health  | Health check          | -    |
 
 ### Фильтрация и пагинация (GET /api/v1/tasks)
 
@@ -105,6 +113,8 @@ tests/integration/    → Интеграционные тесты (testcontainer
 | order            | string  | ?order=asc                       | Направление (asc/desc)           |
 | page             | int     | ?page=1                          | Номер страницы (от 1)            |
 | limit            | int     | ?limit=20                        | Элементов на страницу (max 100)  |
+
+Даты принимаются в двух форматах: `YYYY-MM-DD` и `RFC3339` (`2026-04-01T12:00:00Z`).
 
 ### Формат ответов
 
@@ -133,6 +143,8 @@ tests/integration/    → Интеграционные тесты (testcontainer
 }
 ```
 
+Коды ошибок: `BAD_REQUEST`, `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`, `VALIDATION_ERROR`, `INTERNAL_ERROR`.
+
 ### Примеры запросов
 
 **Регистрация:**
@@ -148,6 +160,14 @@ curl -X POST http://localhost:8080/api/v1/tasks \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{"title": "Deploy v2", "description": "Deploy to prod", "deadline": "2026-04-01T12:00:00Z"}'
+```
+
+**Обновление задачи (частичное):**
+```bash
+curl -X PATCH http://localhost:8080/api/v1/tasks/<id> \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"status": "in_progress"}'
 ```
 
 **Список с фильтрами:**
@@ -177,6 +197,39 @@ curl http://localhost:8080/api/v1/tasks/stats \
 }
 ```
 
+## Безопасность
+
+- **JWT**: Access + Refresh токены, HMAC-SHA256 подпись, валидация метода подписи
+- **Пароли**: bcrypt хэширование (cost 12)
+- **Авторизация**: Пользователь видит только свои задачи
+- **Soft Delete**: Удалённые записи помечаются `deleted_at`, а не стираются физически
+- **SQL Injection**: Whitelist для сортировки, параметризованные запросы
+- **Request Body**: Ограничение 1 MB (MaxBytesReader)
+- **Content-Type**: Проверка `application/json` на routes с body
+- **Docker**: Non-root пользователь в production контейнере
+
+## Конфигурация
+
+Приложение конфигурируется через переменные окружения (файл `.env`):
+
+| Переменная        | Описание                        | По умолчанию   |
+|-------------------|---------------------------------|----------------|
+| SERVER_PORT       | Порт HTTP сервера               | 8080           |
+| SERVER_READ_TIMEOUT  | Таймаут чтения запроса       | 10s            |
+| SERVER_WRITE_TIMEOUT | Таймаут записи ответа        | 30s            |
+| SERVER_SHUTDOWN_TIMEOUT | Таймаут graceful shutdown  | 15s            |
+| DB_HOST           | Хост PostgreSQL                 | localhost      |
+| DB_PORT           | Порт PostgreSQL                 | 5432           |
+| DB_USER           | Пользователь БД                 | taskmanager    |
+| DB_PASSWORD       | Пароль БД                       | taskmanager    |
+| DB_NAME           | Имя БД                          | taskmanager    |
+| DB_SSLMODE        | SSL режим                       | disable        |
+| JWT_ACCESS_SECRET | Секрет для access токенов       | (обязательно)  |
+| JWT_REFRESH_SECRET| Секрет для refresh токенов      | (обязательно)  |
+| JWT_ACCESS_TTL    | Время жизни access токена       | 15m            |
+| JWT_REFRESH_TTL   | Время жизни refresh токена      | 720h           |
+| LOG_LEVEL         | Уровень логирования             | info           |
+
 ## Запуск
 
 ### С Docker Compose (рекомендуется)
@@ -191,7 +244,7 @@ Swagger UI: `http://localhost:8080/swagger/`.
 
 ### Локально
 
-Требования: Go 1.25+, PostgreSQL 16+.
+Требования: Go 1.25+, PostgreSQL 17+.
 
 ```bash
 cp .env.example .env
@@ -207,11 +260,32 @@ just run          # запустить сервер
 just build          # собрать бинарник
 just test           # юнит-тесты
 just test-integ     # интеграционные тесты (нужен Docker)
+just test-all       # юнит + интеграционные тесты
 just lint           # линтер (golangci-lint)
 just swagger        # сгенерировать Swagger docs
 just migrate-up     # применить миграции
 just migrate-down   # откатить последнюю миграцию
 just migrate-create # создать новую миграцию
+just fmt            # форматирование кода
+```
+
+## Тестирование
+
+### Юнит-тесты
+
+Покрывают бизнес-логику (usecase layer) с ручными моками. Table-driven тесты, запускаются параллельно.
+
+```bash
+just test
+```
+
+### Интеграционные тесты
+
+Полный flow через HTTP API с реальной PostgreSQL (testcontainers). Покрывают:
+регистрация, дубликат (409), логин, CRUD задач, фильтрация, статистика, soft delete (404), авторизация (401), изоляция пользователей.
+
+```bash
+just test-integ
 ```
 
 ## Разработка
@@ -225,6 +299,8 @@ just migrate-create # создать новую миграцию
 Подход **RDD (Readme-Driven Development)**:
 этот README написан до первой строки кода и служит спецификацией проекта.
 Весь API, модели данных и архитектура описаны здесь до начала реализации.
+
+Коммиты оформлены по спецификации [Conventional Commits](https://www.conventionalcommits.org/ru/v1.0.0-beta.4/).
 
 ## Лицензия
 
