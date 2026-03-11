@@ -197,6 +197,91 @@ curl http://localhost:8080/api/v1/tasks/stats \
 }
 ```
 
+## Фронтенд (web/)
+
+SPA-приложение на Vue 3 с тёмной темой и glassmorphism-дизайном.
+
+### Стек фронтенда
+
+| Компонент         | Технология                          |
+|-------------------|-------------------------------------|
+| Фреймворк         | Vue 3 (Composition API, `<script setup>`) |
+| Сборка            | Vite 7                              |
+| Язык              | TypeScript 5 (strict)               |
+| Стили             | Tailwind CSS 4                      |
+| Стейт             | Pinia 3                             |
+| Роутинг           | Vue Router 4 (navigation guards)    |
+| Иконки            | Lucide Vue Next                     |
+| Формы             | vee-validate + Zod                  |
+| HTTP-клиент       | ofetch (с interceptors)             |
+| Интернационализация | vue-i18n 10 (EN / RU)            |
+| Графики           | Chart.js + vue-chartjs              |
+| Виртуальный скролл | @tanstack/vue-virtual              |
+| Уведомления       | vue-sonner                          |
+| Тестирование      | Vitest + @vue/test-utils            |
+| Обратный прокси   | Caddy                               |
+
+### Возможности
+
+- JWT-аутентификация (access + refresh) с auto-refresh
+- Защищённые маршруты (navigation guards)
+- Дашборд: карточки и таблица (переключение)
+- DataTable с виртуальным скроллом (10 000+ строк)
+- Графики: линейный (создание задач по времени) + круговая (по статусам)
+- Фильтры таблицы синхронизированы с графиками
+- Пагинация (карточный вид)
+- CRUD задач с модальными окнами
+- Поиск, сортировка, фильтрация по статусу
+- Подсветка просроченных задач
+- Адаптивный дизайн (мобильные устройства)
+- Демо-режим с 10K моковых задач
+- Toast-уведомления
+- Скелетоны загрузки
+- Переключение языка (EN/RU)
+
+### Запуск фронтенда
+
+```bash
+cd web
+npm install
+npm run dev          # dev-сервер на http://localhost:3000
+```
+
+### Команды фронтенда
+
+```bash
+npm run dev          # запуск dev-сервера
+npm run build        # TypeScript проверка + production сборка
+npm run lint         # ESLint
+npm run format       # Prettier
+npm run test         # unit-тесты (Vitest)
+npm run test:watch   # тесты в watch-режиме
+npm run test:coverage # тесты с покрытием
+```
+
+### Структура фронтенда
+
+```
+web/
+  src/
+    api/              → HTTP-клиент и API-модули (auth, tasks)
+    assets/           → Стили (Tailwind CSS)
+    components/
+      auth/           → AuthLayout
+      charts/         → TasksLineChart, TasksPieChart
+      layout/         → AppSidebar (top navbar)
+      tasks/          → TaskCard, TaskFilters, TaskCreateModal, TaskEditModal, TaskPagination
+      ui/             → AppButton, AppCard, AppBadge, AppInput, DataTable, AppSkeleton
+    i18n/             → Интернационализация (en.ts, ru.ts)
+    layouts/          → AppLayout (основной layout с navbar)
+    lib/              → Утилиты (cn, mock-data)
+    pages/            → LoginPage, RegisterPage, DashboardPage, StatsPage
+    router/           → Vue Router с auth guards
+    stores/           → Pinia stores (auth, tasks)
+    types/            → TypeScript-типы (Task, Auth, API)
+    __tests__/        → Unit-тесты (Vitest)
+```
+
 ## Безопасность
 
 - **JWT**: Access + Refresh токены, HMAC-SHA256 подпись, валидация метода подписи
@@ -241,6 +326,7 @@ docker-compose up --build
 
 API доступно на `http://localhost:8080`.
 Swagger UI: `http://localhost:8080/swagger/`.
+Фронтенд: `http://localhost` (через Caddy).
 
 ### Локально
 
@@ -279,13 +365,21 @@ just fmt            # форматирование кода
 just test
 ```
 
-### Интеграционные тесты
+### Интеграционные тесты (бэкенд)
 
 Полный flow через HTTP API с реальной PostgreSQL (testcontainers). Покрывают:
 регистрация, дубликат (409), логин, CRUD задач, фильтрация, статистика, soft delete (404), авторизация (401), изоляция пользователей.
 
 ```bash
 just test-integ
+```
+
+### Unit-тесты (фронтенд)
+
+Vitest + @vue/test-utils + happy-dom. Покрывают: stores (auth, tasks), router guards, i18n (проверка ключей EN/RU, интерполяция, переключение), компоненты (AppBadge), утилиты (mock-data генератор).
+
+```bash
+cd web && npm test
 ```
 
 ## Разработка
