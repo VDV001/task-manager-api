@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { toast } from 'vue-sonner'
 import AuthLayout from '@/components/auth/AuthLayout.vue'
@@ -8,6 +9,7 @@ import AppInput from '@/components/ui/AppInput.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import type { ApiError } from '@/types/api'
 
+const { t } = useI18n()
 const router = useRouter()
 const auth = useAuthStore()
 
@@ -19,27 +21,29 @@ const errors = ref<Record<string, string>>({})
 
 async function handleSubmit() {
   errors.value = {}
-  if (!name.value) errors.value.name = 'Name is required'
-  if (!email.value) errors.value.email = 'Email is required'
-  if (!password.value) errors.value.password = 'Password is required'
-  else if (password.value.length < 6) errors.value.password = 'Minimum 6 characters'
+  if (!name.value) errors.value.name = t('validation.required', { field: t('auth.name') })
+  if (!email.value) errors.value.email = t('validation.required', { field: t('auth.email') })
+  if (!password.value)
+    errors.value.password = t('validation.required', { field: t('auth.password') })
+  else if (password.value.length < 6)
+    errors.value.password = t('validation.minLength', { count: 6 })
   if (Object.keys(errors.value).length) return
 
   loading.value = true
   try {
     await auth.register({ name: name.value, email: email.value, password: password.value })
-    toast.success('Account created!')
+    toast.success(t('auth.accountCreated'))
     router.push({ name: 'dashboard' })
   } catch (err: unknown) {
     const apiErr = (err as Record<string, unknown>)?.data as ApiError | undefined
     if (apiErr?.error?.code === 'CONFLICT') {
-      errors.value.email = 'Email already registered'
+      errors.value.email = t('auth.emailTaken')
     } else if (apiErr?.error?.details?.length) {
       apiErr.error.details.forEach((d) => {
         errors.value[d.field] = d.message
       })
     } else {
-      toast.error(apiErr?.error?.message ?? 'Something went wrong')
+      toast.error(apiErr?.error?.message ?? t('auth.somethingWrong'))
     }
   } finally {
     loading.value = false
@@ -49,32 +53,39 @@ async function handleSubmit() {
 
 <template>
   <AuthLayout>
-    <h2 class="text-xl font-semibold text-text-primary mb-1">Create account</h2>
-    <p class="text-sm text-text-secondary mb-6">Get started with TaskFlow</p>
+    <h2 class="text-xl font-semibold text-text-primary mb-1">{{ t('auth.register') }}</h2>
+    <p class="text-sm text-text-secondary mb-6">{{ t('auth.createAccountSubtitle') }}</p>
 
     <form class="flex flex-col gap-4" @submit.prevent="handleSubmit">
-      <AppInput v-model="name" label="Name" placeholder="John Doe" :error="errors.name" />
+      <AppInput
+        v-model="name"
+        :label="t('auth.name')"
+        :placeholder="t('auth.namePlaceholder')"
+        :error="errors.name"
+      />
       <AppInput
         v-model="email"
-        label="Email"
+        :label="t('auth.email')"
         type="email"
-        placeholder="you@example.com"
+        :placeholder="t('auth.emailPlaceholder')"
         :error="errors.email"
       />
       <AppInput
         v-model="password"
-        label="Password"
+        :label="t('auth.password')"
         type="password"
-        placeholder="Min. 6 characters"
+        :placeholder="t('auth.passwordMinLength')"
         :error="errors.password"
       />
-      <AppButton type="submit" :loading="loading" class="mt-2 w-full"> Create account </AppButton>
+      <AppButton type="submit" :loading="loading" class="mt-2 w-full">
+        {{ t('auth.register') }}
+      </AppButton>
     </form>
 
     <p class="text-sm text-text-muted text-center mt-6">
-      Already have an account?
+      {{ t('auth.hasAccount') }}
       <RouterLink to="/login" class="text-accent hover:text-accent-hover transition-colors">
-        Sign in
+        {{ t('auth.signIn') }}
       </RouterLink>
     </p>
   </AuthLayout>

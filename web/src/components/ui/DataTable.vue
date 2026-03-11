@@ -1,8 +1,4 @@
-<script setup lang="ts" generic="T extends Record<string, any>">
-import { ref, computed } from 'vue'
-import { useVirtualizer } from '@tanstack/vue-virtual'
-import { ArrowUp, ArrowDown, ArrowUpDown, Search } from 'lucide-vue-next'
-
+<script lang="ts">
 export interface Column<T> {
   key: keyof T & string
   label: string
@@ -11,6 +7,15 @@ export interface Column<T> {
   render?: (value: any, row: T) => string
   width?: string
 }
+</script>
+
+<script setup lang="ts" generic="T extends Record<string, any>">
+import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useVirtualizer } from '@tanstack/vue-virtual'
+import { ArrowUp, ArrowDown, ArrowUpDown, Search } from 'lucide-vue-next'
+
+const { t } = useI18n()
 
 const props = withDefaults(
   defineProps<{
@@ -27,6 +32,7 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   rowClick: [row: T]
+  'update:filteredData': [data: T[]]
 }>()
 
 // Search
@@ -78,6 +84,15 @@ const processedData = computed(() => {
   return result
 })
 
+// Emit filtered data to parent for chart sync
+watch(
+  processedData,
+  (data) => {
+    emit('update:filteredData', data)
+  },
+  { immediate: true },
+)
+
 // Virtual scroll
 const parentRef = ref<HTMLElement | null>(null)
 
@@ -102,11 +117,13 @@ const virtualizer = useVirtualizer({
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Search in table..."
+          :placeholder="t('dashboard.searchInTable')"
           class="w-full pl-10 pr-4 py-2 rounded-xl bg-white/5 border border-border text-sm text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all"
         />
       </div>
-      <p class="text-xs text-text-muted mt-2">{{ processedData.length.toLocaleString() }} rows</p>
+      <p class="text-xs text-text-muted mt-2">
+        {{ t('dashboard.rows', { count: processedData.length.toLocaleString() }) }}
+      </p>
     </div>
 
     <!-- Header -->

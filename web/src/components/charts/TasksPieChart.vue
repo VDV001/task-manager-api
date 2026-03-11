@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Doughnut } from 'vue-chartjs'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 import type { TaskStats } from '@/types/task'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
+
+const { t } = useI18n()
 
 const props = defineProps<{
   stats: TaskStats | null
@@ -15,7 +18,7 @@ const chartData = computed(() => {
   if (!s) return null
 
   return {
-    labels: ['New', 'In Progress', 'Done'],
+    labels: [t('charts.new'), t('charts.inProgress'), t('charts.done')],
     datasets: [
       {
         data: [s.by_status.new ?? 0, s.by_status.in_progress ?? 0, s.by_status.done ?? 0],
@@ -61,7 +64,7 @@ const options = {
   <div class="h-64">
     <Doughnut v-if="chartData" :data="chartData" :options="options" />
     <div v-else class="flex items-center justify-center h-full text-text-muted text-sm">
-      No data to display
+      {{ t('common.noData') }}
     </div>
   </div>
 </template>

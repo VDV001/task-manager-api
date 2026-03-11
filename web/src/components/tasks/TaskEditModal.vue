@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { toast } from 'vue-sonner'
 import { useTaskStore } from '@/stores/tasks'
 import AppModal from '@/components/ui/AppModal.vue'
 import AppInput from '@/components/ui/AppInput.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import type { Task, TaskStatus } from '@/types/task'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   open: boolean
@@ -22,20 +25,20 @@ const loading = ref(false)
 
 watch(
   () => props.task,
-  (t) => {
-    if (t) {
-      title.value = t.title
-      description.value = t.description
-      status.value = t.status
-      deadline.value = t.deadline ? t.deadline.slice(0, 16) : ''
+  (task) => {
+    if (task) {
+      title.value = task.title
+      description.value = task.description
+      status.value = task.status
+      deadline.value = task.deadline ? task.deadline.slice(0, 16) : ''
     }
   },
 )
 
-const statuses: { value: TaskStatus; label: string }[] = [
-  { value: 'new', label: 'New' },
-  { value: 'in_progress', label: 'In Progress' },
-  { value: 'done', label: 'Done' },
+const statuses: { value: TaskStatus; labelKey: string }[] = [
+  { value: 'new', labelKey: 'task.new' },
+  { value: 'in_progress', labelKey: 'task.inProgress' },
+  { value: 'done', labelKey: 'task.done' },
 ]
 
 async function handleSubmit() {
@@ -48,10 +51,10 @@ async function handleSubmit() {
       status: status.value,
       deadline: deadline.value ? new Date(deadline.value).toISOString() : undefined,
     })
-    toast.success('Task updated')
+    toast.success(t('task.taskUpdated'))
     emit('close')
   } catch {
-    toast.error('Failed to update task')
+    toast.error(t('task.taskUpdateFailed'))
   } finally {
     loading.value = false
   }
@@ -59,11 +62,11 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <AppModal :open="open" title="Edit Task" @close="$emit('close')">
+  <AppModal :open="open" :title="t('task.editTitle')" @close="$emit('close')">
     <form class="flex flex-col gap-4" @submit.prevent="handleSubmit">
-      <AppInput v-model="title" label="Title" />
+      <AppInput v-model="title" :label="t('task.title')" />
       <div class="flex flex-col gap-1.5">
-        <label class="text-sm font-medium text-text-secondary">Description</label>
+        <label class="text-sm font-medium text-text-secondary">{{ t('task.description') }}</label>
         <textarea
           v-model="description"
           rows="3"
@@ -71,7 +74,7 @@ async function handleSubmit() {
         />
       </div>
       <div class="flex flex-col gap-1.5">
-        <label class="text-sm font-medium text-text-secondary">Status</label>
+        <label class="text-sm font-medium text-text-secondary">{{ t('task.status') }}</label>
         <div class="flex gap-2">
           <button
             v-for="s in statuses"
@@ -85,14 +88,16 @@ async function handleSubmit() {
             ]"
             @click="status = s.value"
           >
-            {{ s.label }}
+            {{ t(s.labelKey) }}
           </button>
         </div>
       </div>
-      <AppInput v-model="deadline" label="Deadline" type="datetime-local" />
+      <AppInput v-model="deadline" :label="t('task.deadline')" type="datetime-local" />
       <div class="flex justify-end gap-3 mt-2">
-        <AppButton variant="secondary" type="button" @click="$emit('close')">Cancel</AppButton>
-        <AppButton type="submit" :loading="loading">Save</AppButton>
+        <AppButton variant="secondary" type="button" @click="$emit('close')">
+          {{ t('common.cancel') }}
+        </AppButton>
+        <AppButton type="submit" :loading="loading">{{ t('task.saveButton') }}</AppButton>
       </div>
     </form>
   </AppModal>

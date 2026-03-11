@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Line } from 'vue-chartjs'
 import {
   Chart as ChartJS,
@@ -15,12 +16,13 @@ import type { Task } from '@/types/task'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler)
 
+const { t } = useI18n()
+
 const props = defineProps<{
   tasks: Task[]
 }>()
 
 const chartData = computed(() => {
-  // Group tasks by month
   const months: Record<string, number> = {}
   props.tasks.forEach((task) => {
     const date = new Date(task.created_at)
@@ -42,7 +44,7 @@ const chartData = computed(() => {
     labels,
     datasets: [
       {
-        label: 'Tasks Created',
+        label: t('charts.tasksCreated'),
         data,
         borderColor: '#6366f1',
         backgroundColor: 'rgba(99, 102, 241, 0.1)',
@@ -88,7 +90,7 @@ const options = {
   <div class="h-64">
     <Line v-if="chartData.labels.length" :data="chartData" :options="options" />
     <div v-else class="flex items-center justify-center h-full text-text-muted text-sm">
-      No data to display
+      {{ t('common.noData') }}
     </div>
   </div>
 </template>

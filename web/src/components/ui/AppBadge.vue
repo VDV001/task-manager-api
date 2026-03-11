@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { cn } from '@/lib/utils'
 import type { TaskStatus } from '@/types/task'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   status: TaskStatus
@@ -10,13 +13,13 @@ const props = defineProps<{
 const config = computed(() => {
   switch (props.status) {
     case 'new':
-      return { label: 'New', class: 'bg-info/10 text-info border-info/20' }
+      return { labelKey: 'task.new', class: 'bg-info/10 text-info border-info/20' }
     case 'in_progress':
-      return { label: 'In Progress', class: 'bg-warning/10 text-warning border-warning/20' }
+      return { labelKey: 'task.inProgress', class: 'bg-warning/10 text-warning border-warning/20' }
     case 'done':
-      return { label: 'Done', class: 'bg-success/10 text-success border-success/20' }
+      return { labelKey: 'task.done', class: 'bg-success/10 text-success border-success/20' }
     default:
-      return { label: props.status, class: '' }
+      return { labelKey: '', class: '' }
   }
 })
 </script>
@@ -30,6 +33,6 @@ const config = computed(() => {
       )
     "
   >
-    {{ config.label }}
+    {{ config.labelKey ? t(config.labelKey) : status }}
   </span>
 </template>

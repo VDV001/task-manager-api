@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Search } from 'lucide-vue-next'
 import type { TaskFilter, TaskStatus } from '@/types/task'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   filter: TaskFilter
@@ -21,11 +24,11 @@ watch(search, (val) => {
   }, 300)
 })
 
-const statuses: { value: TaskStatus | undefined; label: string }[] = [
-  { value: undefined, label: 'All' },
-  { value: 'new', label: 'New' },
-  { value: 'in_progress', label: 'In Progress' },
-  { value: 'done', label: 'Done' },
+const statuses: { value: TaskStatus | undefined; labelKey: string }[] = [
+  { value: undefined, labelKey: 'dashboard.allStatuses' },
+  { value: 'new', labelKey: 'task.new' },
+  { value: 'in_progress', labelKey: 'task.inProgress' },
+  { value: 'done', labelKey: 'task.done' },
 ]
 </script>
 
@@ -37,7 +40,7 @@ const statuses: { value: TaskStatus | undefined; label: string }[] = [
       <input
         v-model="search"
         type="text"
-        placeholder="Search tasks..."
+        :placeholder="t('dashboard.searchTasks')"
         class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/5 border border-border text-sm text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all"
       />
     </div>
@@ -46,7 +49,7 @@ const statuses: { value: TaskStatus | undefined; label: string }[] = [
     <div class="flex gap-1 bg-white/5 rounded-xl p-1 border border-border">
       <button
         v-for="s in statuses"
-        :key="s.label"
+        :key="s.labelKey"
         :class="[
           'px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer',
           filter.status === s.value
@@ -55,7 +58,7 @@ const statuses: { value: TaskStatus | undefined; label: string }[] = [
         ]"
         @click="$emit('update', { status: s.value })"
       >
-        {{ s.label }}
+        {{ t(s.labelKey) }}
       </button>
     </div>
 
@@ -69,7 +72,7 @@ const statuses: { value: TaskStatus | undefined; label: string }[] = [
       ]"
       @click="$emit('update', { overdue: !filter.overdue || undefined })"
     >
-      Overdue
+      {{ t('dashboard.overdue') }}
     </button>
   </div>
 </template>

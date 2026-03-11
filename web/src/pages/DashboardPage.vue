@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { toast } from 'vue-sonner'
 import { Plus, LayoutGrid, Table2, Database } from 'lucide-vue-next'
 import { useTaskStore } from '@/stores/tasks'
@@ -15,9 +16,10 @@ import DataTable from '@/components/ui/DataTable.vue'
 import TasksLineChart from '@/components/charts/TasksLineChart.vue'
 import TasksPieChart from '@/components/charts/TasksPieChart.vue'
 import { generateMockTasks } from '@/lib/mock-data'
-import type { Task, TaskFilter } from '@/types/task'
-import { formatDistanceToNow, parseISO } from 'date-fns'
+import type { Task, TaskFilter, TaskStats } from '@/types/task'
+import { formatDistanceToNow, parseISO, isPast } from 'date-fns'
 
+const { t } = useI18n()
 const taskStore = useTaskStore()
 
 const showCreate = ref(false)
@@ -27,26 +29,25 @@ const viewMode = ref<'cards' | 'table'>('cards')
 const demoMode = ref(false)
 const mockTasks = ref<Task[]>([])
 
-// Table columns definition
-const tableColumns = [
-  { key: 'title' as const, label: 'Title', width: '30%' },
+const tableColumns = computed(() => [
+  { key: 'title' as const, label: t('task.title'), width: '30%' },
   {
     key: 'status' as const,
-    label: 'Status',
+    label: t('task.status'),
     width: '120px',
     render: (val: string) => {
       const map: Record<string, string> = {
-        new: '● New',
-        in_progress: '◐ In Progress',
-        done: '✓ Done',
+        new: t('table.statusNew'),
+        in_progress: t('table.statusInProgress'),
+        done: t('table.statusDone'),
       }
       return map[val] ?? val
     },
   },
-  { key: 'description' as const, label: 'Description' },
+  { key: 'description' as const, label: t('task.description') },
   {
     key: 'deadline' as const,
-    label: 'Deadline',
+    label: t('task.deadline'),
     width: '160px',
     render: (val: string) => {
       if (!val) return '—'
@@ -55,14 +56,44 @@ const tableColumns = [
   },
   {
     key: 'created_at' as const,
-    label: 'Created',
+    label: t('task.created'),
     width: '160px',
     render: (val: string) => formatDistanceToNow(parseISO(val), { addSuffix: true }),
   },
-]
+])
 
-// Data for charts — use mock data in demo mode, real data otherwise
-const chartTasks = computed(() => (demoMode.value ? mockTasks.value : taskStore.tasks))
+// Table-filtered data (updated by DataTable emit)
+const tableFilteredTasks = ref<Task[]>([])
+
+function onTableFilteredData(data: Task[]) {
+  tableFilteredTasks.value = data
+}
+
+// Charts use table-filtered data in table view, all data in cards view
+const chartTasks = computed(() => {
+  const allTasks = demoMode.value ? mockTasks.value : taskStore.tasks
+  if (viewMode.value === 'table' && tableFilteredTasks.value.length < allTasks.length) {
+    return tableFilteredTasks.value
+  }
+  return allTasks
+})
+
+// Compute stats for pie chart from chartTasks (reacts to table filter)
+const chartStats = computed<TaskStats | null>(() => {
+  const tasks = chartTasks.value
+  if (!tasks.length) {
+    // Fallback to store stats when no tasks shown
+    if (!demoMode.value) return taskStore.stats
+    return null
+  }
+  const byStatus = { new: 0, in_progress: 0, done: 0 }
+  let overdue = 0
+  for (const task of tasks) {
+    if (task.status in byStatus) byStatus[task.status as keyof typeof byStatus]++
+    if (task.deadline && task.status !== 'done' && isPast(parseISO(task.deadline))) overdue++
+  }
+  return { total: tasks.length, by_status: byStatus, overdue }
+})
 
 onMounted(() => {
   taskStore.fetchTasks()
@@ -88,12 +119,12 @@ function handleTableRowClick(row: Task) {
 }
 
 async function handleDelete(task: Task) {
-  if (!confirm(`Delete "${task.title}"?`)) return
+  if (!confirm(t('dashboard.deleteConfirm', { title: task.title }))) return
   try {
     await taskStore.deleteTask(task.id)
-    toast.success('Task deleted')
+    toast.success(t('dashboard.taskDeleted'))
   } catch {
-    toast.error('Failed to delete task')
+    toast.error(t('dashboard.taskDeleteFailed'))
   }
 }
 
@@ -109,22 +140,20 @@ const displayTasks = computed(() => (demoMode.value ? mockTasks.value : taskStor
     <!-- Header -->
     <div class="flex items-center justify-between mb-8">
       <div>
-        <h1 class="text-2xl font-bold text-text-primary">Tasks</h1>
+        <h1 class="text-2xl font-bold text-text-primary">{{ t('dashboard.title') }}</h1>
         <p class="text-sm text-text-secondary mt-1">
           {{
             demoMode
-              ? `${mockTasks.length.toLocaleString()} demo rows`
-              : `${taskStore.meta?.total ?? 0} tasks total`
+              ? t('dashboard.demoRows', { count: mockTasks.length.toLocaleString() })
+              : t('dashboard.totalTasks', { count: taskStore.meta?.total ?? 0 })
           }}
         </p>
       </div>
       <div class="flex items-center gap-2">
-        <!-- Demo mode toggle -->
         <AppButton :variant="demoMode ? 'primary' : 'secondary'" size="sm" @click="toggleDemo">
           <Database class="w-4 h-4" />
-          {{ demoMode ? '10K Demo' : 'Demo' }}
+          {{ demoMode ? t('dashboard.demoActive') : t('dashboard.demo') }}
         </AppButton>
-        <!-- View toggle -->
         <div class="flex bg-white/5 rounded-xl p-1 border border-border">
           <button
             :class="[
@@ -151,7 +180,7 @@ const displayTasks = computed(() => (demoMode.value ? mockTasks.value : taskStor
         </div>
         <AppButton v-if="!demoMode" @click="showCreate = true">
           <Plus class="w-4 h-4" />
-          New Task
+          {{ t('dashboard.newTask') }}
         </AppButton>
       </div>
     </div>
@@ -159,16 +188,20 @@ const displayTasks = computed(() => (demoMode.value ? mockTasks.value : taskStor
     <!-- Charts -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
       <AppCard>
-        <h3 class="text-sm font-semibold text-text-secondary mb-4">Tasks Created Over Time</h3>
+        <h3 class="text-sm font-semibold text-text-secondary mb-4">
+          {{ t('dashboard.chartsOverTime') }}
+        </h3>
         <TasksLineChart :tasks="chartTasks" />
       </AppCard>
       <AppCard>
-        <h3 class="text-sm font-semibold text-text-secondary mb-4">Tasks by Status</h3>
-        <TasksPieChart :stats="taskStore.stats" />
+        <h3 class="text-sm font-semibold text-text-secondary mb-4">
+          {{ t('dashboard.chartsByStatus') }}
+        </h3>
+        <TasksPieChart :stats="chartStats" />
       </AppCard>
     </div>
 
-    <!-- Filters (non-demo only) -->
+    <!-- Filters -->
     <TaskFilters
       v-if="!demoMode"
       :filter="taskStore.filter"
@@ -183,6 +216,7 @@ const displayTasks = computed(() => (demoMode.value ? mockTasks.value : taskStor
         :data="displayTasks"
         :row-height="48"
         @row-click="handleTableRowClick"
+        @update:filtered-data="onTableFilteredData"
       />
     </template>
 
@@ -216,20 +250,18 @@ const displayTasks = computed(() => (demoMode.value ? mockTasks.value : taskStor
           @delete="handleDelete"
         />
         <p v-if="demoMode" class="col-span-full text-center text-text-muted text-sm py-4">
-          Showing 12 of {{ mockTasks.length.toLocaleString() }} — switch to table view for virtual
-          scroll
+          {{ t('dashboard.showingDemo', { count: mockTasks.length.toLocaleString() }) }}
         </p>
       </div>
 
       <div v-else class="text-center py-20">
-        <p class="text-text-muted text-lg mb-4">No tasks yet</p>
+        <p class="text-text-muted text-lg mb-4">{{ t('dashboard.noTasks') }}</p>
         <AppButton @click="showCreate = true">
           <Plus class="w-4 h-4" />
-          Create your first task
+          {{ t('dashboard.createFirst') }}
         </AppButton>
       </div>
 
-      <!-- Pagination (non-demo only) -->
       <TaskPagination
         v-if="!demoMode"
         :page="taskStore.filter.page ?? 1"
