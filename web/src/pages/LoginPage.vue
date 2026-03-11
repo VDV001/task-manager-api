@@ -27,8 +27,8 @@ async function handleSubmit() {
     await auth.login({ email: email.value, password: password.value })
     toast.success('Welcome back!')
     router.push({ name: 'dashboard' })
-  } catch (err: any) {
-    const apiErr = err.data as ApiError | undefined
+  } catch (err: unknown) {
+    const apiErr = (err as Record<string, unknown>)?.data as ApiError | undefined
     if (apiErr?.error?.code === 'UNAUTHORIZED') {
       toast.error('Invalid email or password')
     } else {
@@ -60,9 +60,7 @@ async function handleSubmit() {
         placeholder="Enter your password"
         :error="errors.password"
       />
-      <AppButton type="submit" :loading="loading" class="mt-2 w-full">
-        Sign in
-      </AppButton>
+      <AppButton type="submit" :loading="loading" class="mt-2 w-full"> Sign in </AppButton>
     </form>
 
     <p class="text-sm text-text-muted text-center mt-6">

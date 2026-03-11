@@ -30,8 +30,8 @@ async function handleSubmit() {
     await auth.register({ name: name.value, email: email.value, password: password.value })
     toast.success('Account created!')
     router.push({ name: 'dashboard' })
-  } catch (err: any) {
-    const apiErr = err.data as ApiError | undefined
+  } catch (err: unknown) {
+    const apiErr = (err as Record<string, unknown>)?.data as ApiError | undefined
     if (apiErr?.error?.code === 'CONFLICT') {
       errors.value.email = 'Email already registered'
     } else if (apiErr?.error?.details?.length) {
@@ -54,11 +54,21 @@ async function handleSubmit() {
 
     <form class="flex flex-col gap-4" @submit.prevent="handleSubmit">
       <AppInput v-model="name" label="Name" placeholder="John Doe" :error="errors.name" />
-      <AppInput v-model="email" label="Email" type="email" placeholder="you@example.com" :error="errors.email" />
-      <AppInput v-model="password" label="Password" type="password" placeholder="Min. 6 characters" :error="errors.password" />
-      <AppButton type="submit" :loading="loading" class="mt-2 w-full">
-        Create account
-      </AppButton>
+      <AppInput
+        v-model="email"
+        label="Email"
+        type="email"
+        placeholder="you@example.com"
+        :error="errors.email"
+      />
+      <AppInput
+        v-model="password"
+        label="Password"
+        type="password"
+        placeholder="Min. 6 characters"
+        :error="errors.password"
+      />
+      <AppButton type="submit" :loading="loading" class="mt-2 w-full"> Create account </AppButton>
     </form>
 
     <p class="text-sm text-text-muted text-center mt-6">

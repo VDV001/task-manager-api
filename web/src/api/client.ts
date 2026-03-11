@@ -3,10 +3,7 @@ import { ofetch } from 'ofetch'
 let getAccessToken: (() => string | null) | null = null
 let onUnauthorized: (() => void) | null = null
 
-export function setupApiClient(
-  tokenGetter: () => string | null,
-  unauthorizedHandler: () => void,
-) {
+export function setupApiClient(tokenGetter: () => string | null, unauthorizedHandler: () => void) {
   getAccessToken = tokenGetter
   onUnauthorized = unauthorizedHandler
 }

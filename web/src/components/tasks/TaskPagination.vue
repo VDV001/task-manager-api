@@ -20,9 +20,7 @@ defineEmits<{
     >
       <ChevronLeft class="w-5 h-5" />
     </button>
-    <span class="text-sm text-text-secondary px-3">
-      {{ page }} / {{ totalPages }}
-    </span>
+    <span class="text-sm text-text-secondary px-3"> {{ page }} / {{ totalPages }} </span>
     <button
       :disabled="page >= totalPages"
       class="p-2 rounded-lg hover:bg-white/5 text-text-secondary disabled:opacity-30 transition-colors cursor-pointer disabled:cursor-not-allowed"

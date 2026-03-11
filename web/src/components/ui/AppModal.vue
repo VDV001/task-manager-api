@@ -16,7 +16,9 @@ defineEmits<{
     <Transition name="modal">
       <div v-if="open" class="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="$emit('close')" />
-        <div class="relative w-full max-w-lg rounded-2xl border border-border bg-bg-secondary shadow-2xl">
+        <div
+          class="relative w-full max-w-lg rounded-2xl border border-border bg-bg-secondary shadow-2xl"
+        >
           <div class="flex items-center justify-between p-5 border-b border-border">
             <h2 class="text-lg font-semibold text-text-primary">{{ title }}</h2>
             <button

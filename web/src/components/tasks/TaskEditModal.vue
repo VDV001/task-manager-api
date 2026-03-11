@@ -20,14 +20,17 @@ const status = ref<TaskStatus>('new')
 const deadline = ref('')
 const loading = ref(false)
 
-watch(() => props.task, (t) => {
-  if (t) {
-    title.value = t.title
-    description.value = t.description
-    status.value = t.status
-    deadline.value = t.deadline ? t.deadline.slice(0, 16) : ''
-  }
-})
+watch(
+  () => props.task,
+  (t) => {
+    if (t) {
+      title.value = t.title
+      description.value = t.description
+      status.value = t.status
+      deadline.value = t.deadline ? t.deadline.slice(0, 16) : ''
+    }
+  },
+)
 
 const statuses: { value: TaskStatus; label: string }[] = [
   { value: 'new', label: 'New' },

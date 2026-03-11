@@ -71,8 +71,18 @@ export const useTaskStore = defineStore('tasks', () => {
   }
 
   return {
-    tasks, stats, meta, loading, filter, totalPages,
-    fetchTasks, fetchStats, createTask, updateTask, deleteTask,
-    setFilter, setPage,
+    tasks,
+    stats,
+    meta,
+    loading,
+    filter,
+    totalPages,
+    fetchTasks,
+    fetchStats,
+    createTask,
+    updateTask,
+    deleteTask,
+    setFilter,
+    setPage,
   }
 })

@@ -64,12 +64,7 @@ const cards = computed(() => {
     <p class="text-sm text-text-secondary mb-8">Overview of your task progress</p>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-      <AppCard
-        v-for="card in cards"
-        :key="card.label"
-        :class="card.glow"
-        hoverable
-      >
+      <AppCard v-for="card in cards" :key="card.label" :class="card.glow" hoverable>
         <div class="flex items-center justify-between mb-4">
           <span class="text-sm font-medium text-text-secondary">{{ card.label }}</span>
           <div :class="['p-2 rounded-xl', card.bg]">

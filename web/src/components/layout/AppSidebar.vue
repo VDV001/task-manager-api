@@ -1,10 +1,16 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { CheckSquare, LayoutDashboard, BarChart3, LogOut } from 'lucide-vue-next'
 
 const route = useRoute()
+const router = useRouter()
 const auth = useAuthStore()
+
+function handleLogout() {
+  auth.logout()
+  router.push('/login')
+}
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Tasks' },
@@ -13,7 +19,9 @@ const navItems = [
 </script>
 
 <template>
-  <aside class="w-64 flex-shrink-0 flex flex-col border-r border-border bg-bg-secondary/50 backdrop-blur-sm">
+  <aside
+    class="w-64 flex-shrink-0 flex flex-col border-r border-border bg-bg-secondary/50 backdrop-blur-sm"
+  >
     <!-- Logo -->
     <div class="h-16 flex items-center gap-2.5 px-5 border-b border-border">
       <CheckSquare class="w-6 h-6 text-accent" />
@@ -42,7 +50,7 @@ const navItems = [
     <div class="p-3 border-t border-border">
       <button
         class="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-text-secondary hover:text-danger hover:bg-danger/5 transition-all duration-200 cursor-pointer"
-        @click="auth.logout(); $router.push('/login')"
+        @click="handleLogout"
       >
         <LogOut class="w-5 h-5" />
         <span>Log out</span>

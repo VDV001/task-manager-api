@@ -15,16 +15,20 @@ const config = computed(() => {
       return { label: 'In Progress', class: 'bg-warning/10 text-warning border-warning/20' }
     case 'done':
       return { label: 'Done', class: 'bg-success/10 text-success border-success/20' }
+    default:
+      return { label: props.status, class: '' }
   }
 })
 </script>
 
 <template>
   <span
-    :class="cn(
-      'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border',
-      config.class,
-    )"
+    :class="
+      cn(
+        'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border',
+        config.class,
+      )
+    "
   >
     {{ config.label }}
   </span>

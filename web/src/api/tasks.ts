@@ -1,5 +1,11 @@
 import { api } from './client'
-import type { Task, CreateTaskRequest, UpdateTaskRequest, TaskStats, TaskFilter } from '@/types/task'
+import type {
+  Task,
+  CreateTaskRequest,
+  UpdateTaskRequest,
+  TaskStats,
+  TaskFilter,
+} from '@/types/task'
 import type { ApiResponse } from '@/types/api'
 
 export const tasksApi = {

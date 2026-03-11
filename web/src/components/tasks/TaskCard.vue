@@ -53,7 +53,11 @@ const deadlineText = computed(() => {
       {{ task.description }}
     </p>
 
-    <div v-if="deadlineText" class="flex items-center gap-1.5 text-xs" :class="isOverdue ? 'text-danger' : 'text-text-muted'">
+    <div
+      v-if="deadlineText"
+      class="flex items-center gap-1.5 text-xs"
+      :class="isOverdue ? 'text-danger' : 'text-text-muted'"
+    >
       <Calendar class="w-3.5 h-3.5" />
       <span>{{ deadlineText }}</span>
     </div>

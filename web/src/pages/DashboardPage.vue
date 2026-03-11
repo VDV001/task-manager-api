@@ -49,9 +49,7 @@ function handleFilterUpdate(update: Partial<TaskFilter>) {
     <div class="flex items-center justify-between mb-8">
       <div>
         <h1 class="text-2xl font-bold text-text-primary">Tasks</h1>
-        <p class="text-sm text-text-secondary mt-1">
-          {{ taskStore.meta?.total ?? 0 }} tasks total
-        </p>
+        <p class="text-sm text-text-secondary mt-1">{{ taskStore.meta?.total ?? 0 }} tasks total</p>
       </div>
       <AppButton @click="showCreate = true">
         <Plus class="w-4 h-4" />
@@ -64,7 +62,11 @@ function handleFilterUpdate(update: Partial<TaskFilter>) {
 
     <!-- Task grid -->
     <div v-if="taskStore.loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div v-for="i in 6" :key="i" class="rounded-2xl border border-border bg-bg-card/60 p-5 space-y-3">
+      <div
+        v-for="i in 6"
+        :key="i"
+        class="rounded-2xl border border-border bg-bg-card/60 p-5 space-y-3"
+      >
         <AppSkeleton class="w-20" />
         <AppSkeleton class="w-3/4 h-5" />
         <AppSkeleton class="w-full" />
@@ -72,7 +74,10 @@ function handleFilterUpdate(update: Partial<TaskFilter>) {
       </div>
     </div>
 
-    <div v-else-if="taskStore.tasks.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div
+      v-else-if="taskStore.tasks.length"
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+    >
       <TaskCard
         v-for="task in taskStore.tasks"
         :key="task.id"
