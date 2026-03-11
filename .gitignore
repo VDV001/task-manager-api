@@ -1,5 +1,7 @@
 # Binaries
 bin/
+/api
+/migrate
 *.exe
 *.dll
 *.so
@@ -19,6 +21,7 @@ go.work.sum
 
 # Environment
 .env
+.envrc
 
 # OS
 .DS_Store

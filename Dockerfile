@@ -11,16 +11,24 @@ RUN go mod download
 COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app/bin/api ./cmd/api
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app/bin/migrate ./cmd/migrate
 
 # Run stage
 FROM alpine:3.20
 
 RUN apk add --no-cache ca-certificates tzdata
 
+RUN adduser -D -u 1000 appuser
+
 WORKDIR /app
 
 COPY --from=builder /app/bin/api .
+COPY --from=builder /app/bin/migrate .
 COPY --from=builder /app/migrations ./migrations
+
+RUN chown -R appuser:appuser /app
+
+USER appuser
 
 EXPOSE 8080
 

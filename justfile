@@ -8,6 +8,7 @@ default:
 # Build the application binary
 build:
     go build -ldflags="-s -w" -o bin/api ./cmd/api
+    go build -ldflags="-s -w" -o bin/migrate ./cmd/migrate
 
 # Run the application locally
 run:
