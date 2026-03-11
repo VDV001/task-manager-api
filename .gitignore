@@ -40,8 +40,11 @@ docs/plans/
 web/node_modules/
 web/dist/
 
-# Playwright MCP
+# Playwright
 .playwright-mcp/
+web/test-results/
+web/playwright-report/
+web/blob-report/
 
 # Design files
 web/design/
