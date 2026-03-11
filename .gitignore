@@ -32,3 +32,6 @@ coverage.out
 coverage.html
 
 # Swagger generated (keep docs/ tracked for deployment)
+
+# Plans (internal development docs)
+docs/plans/
