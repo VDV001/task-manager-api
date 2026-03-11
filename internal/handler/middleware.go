@@ -25,7 +25,7 @@ func AuthMiddleware(tokens usecase.TokenManager) func(http.Handler) http.Handler
 			}
 
 			bearer, token, found := strings.Cut(header, " ")
-			if !found || strings.ToLower(bearer) != "bearer" || token == "" {
+			if !found || !strings.EqualFold(bearer, "bearer") || token == "" {
 				httputil.Error(w, http.StatusUnauthorized, "UNAUTHORIZED", "invalid authorization header format")
 				return
 			}

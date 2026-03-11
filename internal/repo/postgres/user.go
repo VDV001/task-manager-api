@@ -8,8 +8,8 @@ import (
 
 	"github.com/daniilgit/task-manager-api/internal/domain"
 	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jmoiron/sqlx"
 )
 
 var _ domain.UserRepository = (*UserRepo)(nil)
@@ -62,4 +62,3 @@ func (r *UserRepo) GetByEmail(ctx context.Context, email string) (*domain.User, 
 	}
 	return &user, nil
 }
-

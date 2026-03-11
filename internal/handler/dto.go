@@ -38,8 +38,8 @@ type CreateTaskRequest struct {
 }
 
 type UpdateTaskRequest struct {
-	Title       *string           `json:"title,omitzero" validate:"omitempty,min=1,max=255"`
-	Description *string           `json:"description,omitzero" validate:"omitempty,max=10000"`
+	Title       *string            `json:"title,omitzero" validate:"omitempty,min=1,max=255"`
+	Description *string            `json:"description,omitzero" validate:"omitempty,max=10000"`
 	Status      *domain.TaskStatus `json:"status,omitzero" validate:"omitempty,oneof=new in_progress done"`
 	Deadline    *time.Time         `json:"deadline,omitzero"`
 }

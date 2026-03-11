@@ -18,12 +18,11 @@ import (
 	"github.com/daniilgit/task-manager-api/internal/usecase"
 	"github.com/daniilgit/task-manager-api/pkg/hash"
 	"github.com/daniilgit/task-manager-api/pkg/jwt"
-	"github.com/jmoiron/sqlx"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/jmoiron/sqlx"
 	"github.com/pressly/goose/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go"
 	tcpostgres "github.com/testcontainers/testcontainers-go/modules/postgres"
 )
 
@@ -42,7 +41,7 @@ func setupTestApp(t *testing.T) *testApp {
 		tcpostgres.WithDatabase("testdb"),
 		tcpostgres.WithUsername("test"),
 		tcpostgres.WithPassword("test"),
-		testcontainers.WithWaitStrategy(tcpostgres.BasicWaitStrategies()),
+		tcpostgres.BasicWaitStrategies(),
 	)
 	require.NoError(t, err)
 	t.Cleanup(func() { pgContainer.Terminate(context.Background()) })

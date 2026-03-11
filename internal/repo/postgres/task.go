@@ -81,7 +81,7 @@ func (r *TaskRepo) SoftDelete(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (r *TaskRepo) List(ctx context.Context, authorID uuid.UUID, f domain.TaskFilter) ([]domain.Task, int, error) {
+func (r *TaskRepo) List(ctx context.Context, authorID uuid.UUID, f *domain.TaskFilter) ([]domain.Task, int, error) {
 	var (
 		conditions []string
 		args       []any
@@ -94,8 +94,7 @@ func (r *TaskRepo) List(ctx context.Context, authorID uuid.UUID, f domain.TaskFi
 		return fmt.Sprintf("$%d", argIdx)
 	}
 
-	conditions = append(conditions, "author_id = "+nextArg(authorID))
-	conditions = append(conditions, "deleted_at IS NULL")
+	conditions = append(conditions, "author_id = "+nextArg(authorID), "deleted_at IS NULL")
 
 	if f.Status != nil {
 		conditions = append(conditions, "status = "+nextArg(string(*f.Status)))
@@ -104,8 +103,7 @@ func (r *TaskRepo) List(ctx context.Context, authorID uuid.UUID, f domain.TaskFi
 		conditions = append(conditions, "title ILIKE "+nextArg("%"+*f.Search+"%"))
 	}
 	if f.Overdue != nil && *f.Overdue {
-		conditions = append(conditions, "deadline < now()")
-		conditions = append(conditions, "status != 'done'")
+		conditions = append(conditions, "deadline < now()", "status != 'done'")
 	}
 	if f.DeadlineBefore != nil {
 		conditions = append(conditions, "deadline <= "+nextArg(*f.DeadlineBefore))

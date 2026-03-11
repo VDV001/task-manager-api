@@ -11,6 +11,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -26,8 +27,8 @@ import (
 	"github.com/daniilgit/task-manager-api/internal/usecase"
 	"github.com/daniilgit/task-manager-api/pkg/hash"
 	"github.com/daniilgit/task-manager-api/pkg/jwt"
-	"github.com/jmoiron/sqlx"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/jmoiron/sqlx"
 )
 
 func main() {
@@ -111,7 +112,7 @@ func run() error {
 
 	select {
 	case err := <-errCh:
-		if err != nil && err != http.ErrServerClosed {
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			return fmt.Errorf("server error: %w", err)
 		}
 	case <-ctx.Done():

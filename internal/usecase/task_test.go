@@ -194,7 +194,7 @@ func TestTaskUseCase_List_DefaultPagination(t *testing.T) {
 	authorID := uuid.New()
 
 	repo := &mockTaskRepo{
-		listFn: func(_ context.Context, _ uuid.UUID, filter domain.TaskFilter) ([]domain.Task, int, error) {
+		listFn: func(_ context.Context, _ uuid.UUID, filter *domain.TaskFilter) ([]domain.Task, int, error) {
 			assert.Equal(t, 1, filter.Page)
 			assert.Equal(t, 20, filter.Limit)
 			assert.Equal(t, "created_at", filter.SortBy)
@@ -204,7 +204,7 @@ func TestTaskUseCase_List_DefaultPagination(t *testing.T) {
 	}
 
 	uc := newTaskUseCase(repo)
-	tasks, total, err := uc.List(ctx, authorID, domain.TaskFilter{})
+	tasks, total, err := uc.List(ctx, authorID, &domain.TaskFilter{})
 
 	require.NoError(t, err)
 	assert.Empty(t, tasks)
@@ -217,7 +217,7 @@ func TestTaskUseCase_List_SanitizesInput(t *testing.T) {
 	authorID := uuid.New()
 
 	repo := &mockTaskRepo{
-		listFn: func(_ context.Context, _ uuid.UUID, filter domain.TaskFilter) ([]domain.Task, int, error) {
+		listFn: func(_ context.Context, _ uuid.UUID, filter *domain.TaskFilter) ([]domain.Task, int, error) {
 			assert.Equal(t, "created_at", filter.SortBy, "invalid sort_by should fallback to created_at")
 			assert.Equal(t, "desc", filter.Order, "invalid order should fallback to desc")
 			assert.Equal(t, 20, filter.Limit, "limit > 100 should fallback to 20")
@@ -226,7 +226,7 @@ func TestTaskUseCase_List_SanitizesInput(t *testing.T) {
 	}
 
 	uc := newTaskUseCase(repo)
-	_, _, err := uc.List(ctx, authorID, domain.TaskFilter{
+	_, _, err := uc.List(ctx, authorID, &domain.TaskFilter{
 		SortBy: "DROP TABLE tasks;--",
 		Order:  "sideways",
 		Limit:  999,

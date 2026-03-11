@@ -22,9 +22,9 @@ type ErrorResponse struct {
 }
 
 type ErrorBody struct {
-	Code    string         `json:"code"`
-	Message string         `json:"message"`
-	Details []FieldError   `json:"details,omitempty"`
+	Code    string       `json:"code"`
+	Message string       `json:"message"`
+	Details []FieldError `json:"details,omitempty"`
 }
 
 type FieldError struct {
@@ -44,7 +44,7 @@ func Success(w http.ResponseWriter, status int, data any) {
 	JSON(w, status, Response{Data: data})
 }
 
-func SuccessWithMeta(w http.ResponseWriter, status int, data any, meta any) {
+func SuccessWithMeta(w http.ResponseWriter, status int, data, meta any) {
 	JSON(w, status, Response{Data: data, Meta: meta})
 }
 

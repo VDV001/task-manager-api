@@ -30,7 +30,7 @@ type DBConfig struct {
 	SSLMode  string `env:"DB_SSL_MODE" envDefault:"disable"`
 }
 
-func (c DBConfig) DSN() string {
+func (c *DBConfig) DSN() string {
 	return fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
 		c.Host, c.Port, c.User, c.Password, c.Name, c.SSLMode,

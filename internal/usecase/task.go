@@ -122,7 +122,7 @@ func (uc *TaskUseCase) Delete(ctx context.Context, authorID, taskID uuid.UUID) e
 	return nil
 }
 
-func (uc *TaskUseCase) List(ctx context.Context, authorID uuid.UUID, filter domain.TaskFilter) ([]domain.Task, int, error) {
+func (uc *TaskUseCase) List(ctx context.Context, authorID uuid.UUID, filter *domain.TaskFilter) ([]domain.Task, int, error) {
 	if filter.Page < 1 {
 		filter.Page = 1
 	}

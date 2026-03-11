@@ -223,11 +223,11 @@ func TestAuthUseCase_Refresh(t *testing.T) {
 	userID := uuid.New()
 
 	tests := []struct {
-		name            string
-		refreshToken    string
-		parseRefreshFn  func(token string) (uuid.UUID, error)
-		getByIDFn       func(ctx context.Context, id uuid.UUID) (*domain.User, error)
-		wantErr         error
+		name           string
+		refreshToken   string
+		parseRefreshFn func(token string) (uuid.UUID, error)
+		getByIDFn      func(ctx context.Context, id uuid.UUID) (*domain.User, error)
+		wantErr        error
 	}{
 		{
 			name:         "success",

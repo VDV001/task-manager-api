@@ -1,3 +1,5 @@
+version: "2"
+
 run:
   timeout: 3m
   go: "1.25"
@@ -8,9 +10,7 @@ linters:
     - govet
     - staticcheck
     - unused
-    - gosimple
     - ineffassign
-    - typecheck
     - bodyclose
     - noctx
     - gosec
@@ -18,36 +18,39 @@ linters:
     - errorlint
     - exhaustive
     - gocritic
-    - gofmt
-    - goimports
     - misspell
     - prealloc
     - revive
     - unconvert
     - unparam
     - whitespace
-
-linters-settings:
-  govet:
-    shadow: true
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - style
-      - performance
-  revive:
+  settings:
+    errcheck:
+      exclude-functions:
+        - (*database/sql.DB).Close
+        - (*github.com/jmoiron/sqlx.DB).Close
+    gocritic:
+      enabled-tags:
+        - diagnostic
+        - style
+        - performance
+    revive:
+      rules:
+        - name: unexported-return
+          disabled: true
+    exhaustive:
+      default-signifies-exhaustive: true
+  exclusions:
     rules:
-      - name: unexported-return
-        disabled: true
-  exhaustive:
-    default-signifies-exhaustive: true
+      - path: _test\.go
+        linters:
+          - gosec
+          - errcheck
+      - path: mock_test\.go
+        linters:
+          - unparam
 
-issues:
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - gosec
-        - errcheck
-    - path: mock_test\.go
-      linters:
-        - unparam
+formatters:
+  enable:
+    - gofmt
+    - goimports

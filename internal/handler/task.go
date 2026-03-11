@@ -229,7 +229,7 @@ func (h *TaskHandler) List(w http.ResponseWriter, r *http.Request) {
 		httputil.Error(w, http.StatusUnauthorized, "UNAUTHORIZED", "missing user identity")
 		return
 	}
-	tasks, total, err := h.tasks.List(r.Context(), authorID, filter)
+	tasks, total, err := h.tasks.List(r.Context(), authorID, &filter)
 	if err != nil {
 		httputil.Error(w, http.StatusInternalServerError, "INTERNAL_ERROR", "failed to list tasks")
 		return

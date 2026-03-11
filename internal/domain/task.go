@@ -59,9 +59,9 @@ type TaskFilter struct {
 
 // TaskStats — агрегированная статистика по задачам пользователя.
 type TaskStats struct {
-	Total      int            `json:"total"`
-	ByStatus   map[string]int `json:"by_status"`
-	Overdue    int            `json:"overdue"`
+	Total    int            `json:"total"`
+	ByStatus map[string]int `json:"by_status"`
+	Overdue  int            `json:"overdue"`
 }
 
 type TaskRepository interface {
@@ -69,6 +69,6 @@ type TaskRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*Task, error)
 	Update(ctx context.Context, task *Task) error
 	SoftDelete(ctx context.Context, id uuid.UUID) error
-	List(ctx context.Context, authorID uuid.UUID, filter TaskFilter) ([]Task, int, error)
+	List(ctx context.Context, authorID uuid.UUID, filter *TaskFilter) ([]Task, int, error)
 	GetStats(ctx context.Context, authorID uuid.UUID) (*TaskStats, error)
 }

@@ -13,14 +13,20 @@ import (
 )
 
 func main() {
+	if err := run(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func run() error {
 	cfg, err := config.Load()
 	if err != nil {
-		log.Fatalf("load config: %v", err)
+		return fmt.Errorf("load config: %w", err)
 	}
 
 	db, err := sqlx.Connect("pgx", cfg.DB.DSN())
 	if err != nil {
-		log.Fatalf("connect to database: %v", err)
+		return fmt.Errorf("connect to database: %w", err)
 	}
 	defer db.Close()
 
@@ -30,12 +36,13 @@ func main() {
 	}
 
 	if err := goose.SetDialect("postgres"); err != nil {
-		log.Fatalf("goose set dialect: %v", err)
+		return fmt.Errorf("goose set dialect: %w", err)
 	}
 
 	if err := goose.RunContext(context.Background(), command, db.DB, "migrations"); err != nil {
-		log.Fatalf("goose %s: %v", command, err)
+		return fmt.Errorf("goose %s: %w", command, err)
 	}
 
 	fmt.Printf("goose %s: done\n", command)
+	return nil
 }
