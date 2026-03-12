@@ -11,7 +11,8 @@ type Config struct {
 	Server   ServerConfig
 	DB       DBConfig
 	JWT      JWTConfig
-	LogLevel string `env:"LOG_LEVEL" envDefault:"info"`
+	LogLevel    string   `env:"LOG_LEVEL" envDefault:"info"`
+	CORSOrigins []string `env:"CORS_ORIGINS" envSeparator:"," envDefault:"*"`
 }
 
 type ServerConfig struct {

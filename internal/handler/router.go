@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
 	"log/slog"
 	"net/http"
 
@@ -19,14 +20,16 @@ func NewRouter(
 	tokens usecase.TokenManager,
 	log *slog.Logger,
 	dbPing func(ctx context.Context) error,
+	corsOrigins []string,
+	buildInfo map[string]string,
 ) http.Handler {
 	r := chi.NewRouter()
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"},
+		AllowedOrigins:   corsOrigins,
 		AllowedMethods:   []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Authorization", "Content-Type"},
-		ExposedHeaders:   []string{"X-Request-Id"},
+		ExposedHeaders:   []string{"X-Request-Id", "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"},
 		AllowCredentials: false,
 		MaxAge:           300,
 	})
@@ -74,6 +77,12 @@ func NewRouter(
 	r.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL("/swagger/doc.json"),
 	))
+
+	// Version info.
+	r.Get("/version", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(buildInfo)
+	})
 
 	// Liveness — always OK if process is running.
 	r.Get("/healthz", func(w http.ResponseWriter, _ *http.Request) {

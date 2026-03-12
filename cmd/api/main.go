@@ -17,6 +17,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
 	"time"
 
@@ -29,6 +30,13 @@ import (
 	"github.com/daniilgit/task-manager-api/pkg/jwt"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
+)
+
+// Build-time variables injected via -ldflags.
+var (
+	Version   = "dev"
+	Commit    = "none"
+	BuildTime = "unknown"
 )
 
 func main() {
@@ -90,7 +98,14 @@ func run() error {
 	taskUC := usecase.NewTaskUseCase(taskRepo, log)
 
 	// HTTP server.
-	router := handler.NewRouter(authUC, taskUC, tokenAdapter, log, db.PingContext)
+	buildInfo := map[string]string{
+		"version":    Version,
+		"commit":     Commit,
+		"build_time": BuildTime,
+		"go_version": runtime.Version(),
+	}
+
+	router := handler.NewRouter(authUC, taskUC, tokenAdapter, log, db.PingContext, cfg.CORSOrigins, buildInfo)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Server.Port),
