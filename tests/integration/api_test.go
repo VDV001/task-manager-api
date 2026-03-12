@@ -68,7 +68,8 @@ func setupTestApp(t *testing.T) *testApp {
 	authUC := usecase.NewAuthUseCase(userRepo, hasher, tokenAdapter, log)
 	taskUC := usecase.NewTaskUseCase(taskRepo, log)
 
-	router := handler.NewRouter(authUC, taskUC, tokenAdapter, log, db.PingContext)
+	buildInfo := map[string]string{"version": "test", "commit": "test"}
+	router := handler.NewRouter(authUC, taskUC, tokenAdapter, log, db.PingContext, []string{"*"}, buildInfo)
 	server := httptest.NewServer(router)
 	t.Cleanup(func() { server.Close() })
 
