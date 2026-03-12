@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"fmt"
+	"math"
 	"net"
 	"net/http"
 	"sync"
@@ -60,16 +62,39 @@ func (rl *RateLimiter) cleanup() {
 	}
 }
 
+func (rl *RateLimiter) setHeaders(w http.ResponseWriter, limiter *rate.Limiter) {
+	tokens := limiter.Tokens()
+	remaining := int(math.Max(0, math.Floor(tokens)))
+	deficit := float64(rl.burst) - tokens
+	var resetUnix int64
+	if deficit <= 0 {
+		resetUnix = time.Now().Unix()
+	} else {
+		secsToFull := deficit / float64(rl.rate)
+		resetUnix = time.Now().Add(time.Duration(secsToFull * float64(time.Second))).Unix()
+	}
+	w.Header().Set("X-RateLimit-Limit", fmt.Sprintf("%d", rl.burst))
+	w.Header().Set("X-RateLimit-Remaining", fmt.Sprintf("%d", remaining))
+	w.Header().Set("X-RateLimit-Reset", fmt.Sprintf("%d", resetUnix))
+}
+
 func (rl *RateLimiter) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ip, _, _ := net.SplitHostPort(r.RemoteAddr)
 		if ip == "" {
 			ip = r.RemoteAddr
 		}
-		if !rl.getLimiter(ip).Allow() {
-			http.Error(w, `{"error":{"code":"RATE_LIMITED","message":"too many requests"}}`, http.StatusTooManyRequests)
+		limiter := rl.getLimiter(ip)
+		if !limiter.Allow() {
+			w.Header().Set("X-RateLimit-Limit", fmt.Sprintf("%d", rl.burst))
+			w.Header().Set("X-RateLimit-Remaining", "0")
+			w.Header().Set("X-RateLimit-Reset", fmt.Sprintf("%d", time.Now().Add(time.Second/time.Duration(rl.rate)).Unix()))
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusTooManyRequests)
+			_, _ = w.Write([]byte(`{"error":{"code":"RATE_LIMITED","message":"Too many requests, please try again later"}}`))
 			return
 		}
+		rl.setHeaders(w, limiter)
 		next.ServeHTTP(w, r)
 	})
 }
