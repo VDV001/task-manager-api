@@ -3,7 +3,8 @@ import { watch, onUnmounted } from 'vue'
 import { X } from 'lucide-vue-next'
 
 let counter = 0
-const modalTitleId = `modal-title-${++counter}`
+counter++
+const modalTitleId = `modal-title-${counter}`
 
 const props = defineProps<{
   open: boolean

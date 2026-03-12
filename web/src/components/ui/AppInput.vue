@@ -17,7 +17,8 @@ defineEmits<{
   'update:modelValue': [value: string]
 }>()
 
-const autoId = `app-input-${++counter}`
+counter++
+const autoId = `app-input-${counter}`
 const inputId = computed(() => props.id || autoId)
 const errorId = computed(() => `${inputId.value}-error`)
 </script>
