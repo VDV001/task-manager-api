@@ -1,0 +1,41 @@
+# Version control
+.git/
+.gitignore
+
+# Node / Frontend build artifacts
+node_modules
+web/node_modules/
+web/dist/
+web/test-results/
+web/playwright-report/
+web/design/
+
+# Playwright MCP
+.playwright-mcp/
+
+# IDE
+.idea/
+.vscode/
+
+# Environment (keep .env.example)
+.env
+.env.local
+.env.*.local
+
+# Documentation
+docs/plans/
+*.md
+
+# CI/CD
+.github/
+
+# Build output
+bin/
+
+# Test coverage
+coverage.out
+coverage.html
+
+# Docker
+docker-compose*.yml
+.dockerignore
