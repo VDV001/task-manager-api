@@ -108,6 +108,7 @@ const virtualizer = useVirtualizer({
 
 <template>
   <div
+    role="table"
     class="flex flex-col border border-border rounded-2xl bg-bg-card/60 backdrop-blur-sm overflow-hidden"
   >
     <!-- Search -->
@@ -117,6 +118,7 @@ const virtualizer = useVirtualizer({
         <input
           v-model="searchQuery"
           type="text"
+          :aria-label="t('dashboard.searchInTable')"
           :placeholder="t('dashboard.searchInTable')"
           class="w-full pl-10 pr-4 py-2 rounded-xl bg-white/5 border border-border text-sm text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all"
         />

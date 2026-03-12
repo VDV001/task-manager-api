@@ -37,7 +37,12 @@ const classes = computed(() =>
 </script>
 
 <template>
-  <button :class="classes" :disabled="disabled || loading">
+  <button
+    :class="classes"
+    :disabled="disabled || loading"
+    :aria-busy="loading || undefined"
+    :aria-disabled="disabled || loading || undefined"
+  >
     <AppSpinner v-if="loading" class="w-4 h-4" />
     <slot />
   </button>

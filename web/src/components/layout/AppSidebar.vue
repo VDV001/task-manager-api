@@ -48,11 +48,17 @@ const navItems = [
         </div>
 
         <!-- Desktop Nav — pill-shaped -->
-        <nav class="hidden sm:flex items-center">
+        <nav aria-label="Main navigation" class="hidden sm:flex items-center">
           <div
             class="flex items-center gap-1 rounded-full bg-white/[0.04] backdrop-blur-lg border border-white/[0.06] px-1.5 py-1.5"
           >
-            <RouterLink v-for="item in navItems" :key="item.to" :to="item.to" class="relative">
+            <RouterLink
+              v-for="item in navItems"
+              :key="item.to"
+              :to="item.to"
+              :aria-current="route.path === item.to ? 'page' : undefined"
+              class="relative"
+            >
               <div
                 :class="[
                   'relative flex items-center gap-2 px-4 py-1.5 rounded-full transition-all duration-300 text-sm font-medium',
@@ -96,6 +102,8 @@ const navItems = [
 
           <!-- Mobile menu toggle -->
           <button
+            :aria-expanded="mobileOpen"
+            aria-controls="mobile-nav"
             class="sm:hidden p-2 rounded-lg text-text-secondary hover:text-text-primary cursor-pointer"
             @click="mobileOpen = !mobileOpen"
           >
@@ -107,7 +115,12 @@ const navItems = [
 
       <!-- Mobile Nav -->
       <Transition name="slide-down">
-        <div v-if="mobileOpen" class="sm:hidden pb-4 space-y-1">
+        <nav
+          v-if="mobileOpen"
+          id="mobile-nav"
+          aria-label="Mobile navigation"
+          class="sm:hidden pb-4 space-y-1"
+        >
           <RouterLink
             v-for="item in navItems"
             :key="item.to"
@@ -130,7 +143,7 @@ const navItems = [
             <LogOut class="w-5 h-5" />
             {{ t('auth.logout') }}
           </button>
-        </div>
+        </nav>
       </Transition>
     </div>
   </header>
