@@ -104,6 +104,11 @@ export default {
     statusInProgress: '◐ In Progress',
     statusDone: '✓ Done',
   },
+  error: {
+    title: 'Something went wrong',
+    description: 'An unexpected error occurred. Please try again.',
+    retry: 'Try again',
+  },
   charts: {
     tasksCreated: 'Tasks Created',
     new: 'New',

@@ -1,3 +1,9 @@
+<script setup lang="ts">
+import ErrorBoundary from '@/components/ui/ErrorBoundary.vue'
+</script>
+
 <template>
-  <RouterView />
+  <ErrorBoundary>
+    <RouterView />
+  </ErrorBoundary>
 </template>

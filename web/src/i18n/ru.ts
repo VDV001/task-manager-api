@@ -104,6 +104,11 @@ export default {
     statusInProgress: '◐ В работе',
     statusDone: '✓ Готово',
   },
+  error: {
+    title: 'Что-то пошло не так',
+    description: 'Произошла непредвиденная ошибка. Попробуйте ещё раз.',
+    retry: 'Попробовать снова',
+  },
   charts: {
     tasksCreated: 'Создано задач',
     new: 'Новые',
