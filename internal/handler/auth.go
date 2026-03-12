@@ -21,13 +21,17 @@ func NewAuthHandler(auth *usecase.AuthUseCase, validate *validator.Validate) *Au
 
 // Register godoc
 // @Summary      Регистрация пользователя
+// @Description  Создаёт нового пользователя и возвращает пару JWT-токенов.
 // @Tags         auth
 // @Accept       json
 // @Produce      json
 // @Param        body body RegisterRequest true "Данные регистрации"
 // @Success      201 {object} httputil.Response{data=TokenResponse}
-// @Failure      409 {object} httputil.ErrorResponse
-// @Failure      422 {object} httputil.ErrorResponse
+// @Failure      400 {object} httputil.ErrorResponse "Невалидный JSON"
+// @Failure      409 {object} httputil.ErrorResponse "Email уже зарегистрирован"
+// @Failure      422 {object} httputil.ErrorResponse "Ошибка валидации"
+// @Failure      429 {object} httputil.ErrorResponse "Слишком много запросов"
+// @Failure      500 {object} httputil.ErrorResponse "Внутренняя ошибка"
 // @Router       /auth/register [post]
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req RegisterRequest
@@ -63,12 +67,17 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 // Login godoc
 // @Summary      Вход в систему
+// @Description  Аутентификация по email/password, возвращает JWT-токены.
 // @Tags         auth
 // @Accept       json
 // @Produce      json
 // @Param        body body LoginRequest true "Данные входа"
 // @Success      200 {object} httputil.Response{data=TokenResponse}
-// @Failure      401 {object} httputil.ErrorResponse
+// @Failure      400 {object} httputil.ErrorResponse "Невалидный JSON"
+// @Failure      401 {object} httputil.ErrorResponse "Неверный email или пароль"
+// @Failure      422 {object} httputil.ErrorResponse "Ошибка валидации"
+// @Failure      429 {object} httputil.ErrorResponse "Слишком много запросов"
+// @Failure      500 {object} httputil.ErrorResponse "Внутренняя ошибка"
 // @Router       /auth/login [post]
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
@@ -103,12 +112,16 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 // Refresh godoc
 // @Summary      Обновление токенов
+// @Description  Обменивает refresh-токен на новую пару access/refresh.
 // @Tags         auth
 // @Accept       json
 // @Produce      json
 // @Param        body body RefreshRequest true "Refresh token"
 // @Success      200 {object} httputil.Response{data=TokenResponse}
-// @Failure      401 {object} httputil.ErrorResponse
+// @Failure      400 {object} httputil.ErrorResponse "Невалидный JSON"
+// @Failure      401 {object} httputil.ErrorResponse "Невалидный refresh-токен"
+// @Failure      429 {object} httputil.ErrorResponse "Слишком много запросов"
+// @Failure      500 {object} httputil.ErrorResponse "Внутренняя ошибка"
 // @Router       /auth/refresh [post]
 func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 	var req RefreshRequest

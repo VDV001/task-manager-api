@@ -25,13 +25,17 @@ func NewTaskHandler(tasks *usecase.TaskUseCase, validate *validator.Validate) *T
 
 // Create godoc
 // @Summary      Создать задачу
+// @Description  Создаёт новую задачу для текущего пользователя.
 // @Tags         tasks
 // @Security     BearerAuth
 // @Accept       json
 // @Produce      json
 // @Param        body body CreateTaskRequest true "Данные задачи"
 // @Success      201 {object} httputil.Response{data=TaskResponse}
-// @Failure      422 {object} httputil.ErrorResponse
+// @Failure      400 {object} httputil.ErrorResponse "Невалидный JSON"
+// @Failure      401 {object} httputil.ErrorResponse "Не авторизован"
+// @Failure      422 {object} httputil.ErrorResponse "Ошибка валидации"
+// @Failure      500 {object} httputil.ErrorResponse "Внутренняя ошибка"
 // @Router       /tasks [post]
 func (h *TaskHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var req CreateTaskRequest
@@ -65,12 +69,17 @@ func (h *TaskHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 // GetByID godoc
 // @Summary      Получить задачу по ID
+// @Description  Возвращает задачу по UUID. Доступна только автору.
 // @Tags         tasks
 // @Security     BearerAuth
 // @Produce      json
 // @Param        id path string true "Task ID (UUID)"
 // @Success      200 {object} httputil.Response{data=TaskResponse}
-// @Failure      404 {object} httputil.ErrorResponse
+// @Failure      400 {object} httputil.ErrorResponse "Невалидный UUID"
+// @Failure      401 {object} httputil.ErrorResponse "Не авторизован"
+// @Failure      403 {object} httputil.ErrorResponse "Доступ запрещён"
+// @Failure      404 {object} httputil.ErrorResponse "Задача не найдена"
+// @Failure      500 {object} httputil.ErrorResponse "Внутренняя ошибка"
 // @Router       /tasks/{id} [get]
 func (h *TaskHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	taskID, err := uuid.Parse(chi.URLParam(r, "id"))
@@ -95,6 +104,7 @@ func (h *TaskHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 // Update godoc
 // @Summary      Обновить задачу
+// @Description  Частичное обновление задачи (PATCH). Доступна только автору.
 // @Tags         tasks
 // @Security     BearerAuth
 // @Accept       json
@@ -102,7 +112,12 @@ func (h *TaskHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 // @Param        id path string true "Task ID (UUID)"
 // @Param        body body UpdateTaskRequest true "Поля для обновления"
 // @Success      200 {object} httputil.Response{data=TaskResponse}
-// @Failure      404 {object} httputil.ErrorResponse
+// @Failure      400 {object} httputil.ErrorResponse "Невалидный JSON или UUID"
+// @Failure      401 {object} httputil.ErrorResponse "Не авторизован"
+// @Failure      403 {object} httputil.ErrorResponse "Доступ запрещён"
+// @Failure      404 {object} httputil.ErrorResponse "Задача не найдена"
+// @Failure      422 {object} httputil.ErrorResponse "Ошибка валидации"
+// @Failure      500 {object} httputil.ErrorResponse "Внутренняя ошибка"
 // @Router       /tasks/{id} [patch]
 func (h *TaskHandler) Update(w http.ResponseWriter, r *http.Request) {
 	taskID, err := uuid.Parse(chi.URLParam(r, "id"))
@@ -143,11 +158,17 @@ func (h *TaskHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 // Delete godoc
 // @Summary      Удалить задачу (soft delete)
+// @Description  Мягкое удаление задачи. Доступна только автору.
 // @Tags         tasks
 // @Security     BearerAuth
+// @Produce      json
 // @Param        id path string true "Task ID (UUID)"
-// @Success      204
-// @Failure      404 {object} httputil.ErrorResponse
+// @Success      204 "Задача удалена"
+// @Failure      400 {object} httputil.ErrorResponse "Невалидный UUID"
+// @Failure      401 {object} httputil.ErrorResponse "Не авторизован"
+// @Failure      403 {object} httputil.ErrorResponse "Доступ запрещён"
+// @Failure      404 {object} httputil.ErrorResponse "Задача не найдена"
+// @Failure      500 {object} httputil.ErrorResponse "Внутренняя ошибка"
 // @Router       /tasks/{id} [delete]
 func (h *TaskHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	taskID, err := uuid.Parse(chi.URLParam(r, "id"))
@@ -171,6 +192,7 @@ func (h *TaskHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 // List godoc
 // @Summary      Список задач с фильтрацией и пагинацией
+// @Description  Возвращает список задач текущего пользователя с фильтрацией, сортировкой и пагинацией.
 // @Tags         tasks
 // @Security     BearerAuth
 // @Produce      json
@@ -186,6 +208,9 @@ func (h *TaskHandler) Delete(w http.ResponseWriter, r *http.Request) {
 // @Param        page query int false "Страница" default(1)
 // @Param        limit query int false "Лимит" default(20)
 // @Success      200 {object} httputil.Response{data=[]TaskResponse,meta=httputil.PaginationMeta}
+// @Failure      400 {object} httputil.ErrorResponse "Невалидный параметр фильтрации"
+// @Failure      401 {object} httputil.ErrorResponse "Не авторизован"
+// @Failure      500 {object} httputil.ErrorResponse "Внутренняя ошибка"
 // @Router       /tasks [get]
 func (h *TaskHandler) List(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
@@ -244,10 +269,13 @@ func (h *TaskHandler) List(w http.ResponseWriter, r *http.Request) {
 
 // Stats godoc
 // @Summary      Статистика по задачам
+// @Description  Возвращает агрегированную статистику: общее количество, по статусам, просроченные.
 // @Tags         tasks
 // @Security     BearerAuth
 // @Produce      json
 // @Success      200 {object} httputil.Response{data=StatsResponse}
+// @Failure      401 {object} httputil.ErrorResponse "Не авторизован"
+// @Failure      500 {object} httputil.ErrorResponse "Внутренняя ошибка"
 // @Router       /tasks/stats [get]
 func (h *TaskHandler) Stats(w http.ResponseWriter, r *http.Request) {
 	authorID, err := UserIDFromContext(r.Context())
