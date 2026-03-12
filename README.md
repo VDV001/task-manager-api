@@ -94,9 +94,11 @@ tests/integration/    → Интеграционные тесты (testcontainer
 
 ### Служебные
 
-| Метод  | Путь     | Описание              | Auth |
-|--------|----------|-----------------------|------|
-| GET    | /health  | Health check          | -    |
+| Метод  | Путь      | Описание                                 | Auth |
+|--------|-----------|------------------------------------------|------|
+| GET    | /healthz  | Liveness probe                           | -    |
+| GET    | /readyz   | Readiness probe (проверка БД)            | -    |
+| GET    | /version  | Информация о сборке (версия, коммит, Go) | -    |
 
 ### Фильтрация и пагинация (GET /api/v1/tasks)
 
@@ -238,6 +240,8 @@ SPA-приложение на Vue 3 с тёмной темой и glassmorphism-
 - Toast-уведомления
 - Скелетоны загрузки
 - Переключение языка (EN/RU)
+- Error Boundary с retry (key-based re-mount)
+- Доступность (a11y): ARIA-атрибуты, семантический HTML, навигация с клавиатуры
 
 ### Запуск фронтенда
 
@@ -271,7 +275,7 @@ web/
       charts/         → TasksLineChart, TasksPieChart
       layout/         → AppSidebar (top navbar)
       tasks/          → TaskCard, TaskFilters, TaskCreateModal, TaskEditModal, TaskPagination
-      ui/             → AppButton, AppCard, AppBadge, AppInput, DataTable, AppSkeleton
+      ui/             → AppButton, AppCard, AppBadge, AppInput, AppModal, AppSpinner, DataTable, AppSkeleton, ErrorBoundary
     i18n/             → Интернационализация (en.ts, ru.ts)
     layouts/          → AppLayout (основной layout с navbar)
     lib/              → Утилиты (cn, mock-data)
@@ -291,7 +295,9 @@ web/
 - **SQL Injection**: Whitelist для сортировки, параметризованные запросы
 - **Request Body**: Ограничение 1 MB (MaxBytesReader)
 - **Content-Type**: Проверка `application/json` на routes с body
-- **Docker**: Non-root пользователь в production контейнере
+- **CORS**: Настраиваемые origins через переменную окружения
+- **Rate Limiting**: Per-IP ограничение запросов с X-RateLimit-* заголовками
+- **Docker**: Non-root пользователь, healthchecks, .dockerignore
 
 ## Конфигурация
 
@@ -313,6 +319,7 @@ web/
 | JWT_REFRESH_SECRET| Секрет для refresh токенов      | (обязательно)  |
 | JWT_ACCESS_TTL    | Время жизни access токена       | 15m            |
 | JWT_REFRESH_TTL   | Время жизни refresh токена      | 720h           |
+| CORS_ORIGINS      | Разрешённые origin (через запятую) | *           |
 | LOG_LEVEL         | Уровень логирования             | info           |
 
 ## Запуск
@@ -380,6 +387,14 @@ Vitest + @vue/test-utils + happy-dom. Покрывают: stores (auth, tasks), 
 
 ```bash
 cd web && npm test
+```
+
+### E2E-тесты (фронтенд)
+
+Playwright + Chromium. Покрывают: авторизация (login/register), навигация, переключение языка, дашборд.
+
+```bash
+cd web && npx playwright test
 ```
 
 ## Разработка
