@@ -9,7 +9,7 @@ export function setupApiClient(tokenGetter: () => string | null, unauthorizedHan
 }
 
 export const api = ofetch.create({
-  baseURL: '/api/v1',
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
   onRequest({ options }) {
     const token = getAccessToken?.()
     if (token) {
